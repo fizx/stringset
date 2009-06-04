@@ -3,25 +3,25 @@ class StringSet
   
   TOKENIZER = /\W+/
   
-  attr_reader :strings
+  attr_reader :strings, :max_token_size
   
   def stemming? 
     !!@stemming
   end
   
-  def initialize(strings, options = {})
+  def initialize(strings = [], options = {})
     @stemming = options[:stem]
     @strings = tokenize strings
+    @max_token_size = @strings.map{|str| str.split(TOKENIZER).length }.max 
+    @strings.map! {|str| stem(str.split(TOKENIZER)).join(" ") } if stemming?
   end
   
   def substrings_in(strings)
-    tokenize(strings) & @strings
+    tokenize(strings, true) & @strings
   end
-  
-private
 
-  def tokenize(strings)
-    case strings
+  def tokenize(strings, ngramize = false)
+    tokens = case strings
     when Array: 
       strings
     when String: 
@@ -29,6 +29,17 @@ private
     else
       raise Error.new("Could not tokenize")
     end
+    ngramize ? ngramize(tokens) : tokens
+  end
+  
+  def ngramize(tokens, size = @max_token_size)
+    buffer = []
+    2.upto(size) do |n|
+      0.upto(tokens.length - n) do |i|
+        buffer << Array.new(n){|j| j }.map{|k| tokens[i+k] }.join(" ")
+      end
+    end
+    tokens + buffer
   end
 
   def stem(tokens)
