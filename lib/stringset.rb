@@ -12,7 +12,7 @@ class StringSet
   def initialize(strings = [], options = {})
     @stemming = options[:stem]
     @strings = tokenize strings
-    @max_token_size = @strings.map{|str| str.split(TOKENIZER).length }.max 
+    @max_token_size = @strings.map{|str| str.split(TOKENIZER).length }.max.to_i
     @strings.map! {|str| stem(str.split(TOKENIZER)).join(" ") } if stemming?
   end
   
@@ -27,7 +27,7 @@ class StringSet
     when String: 
       stem(strings.split(TOKENIZER))
     else
-      raise Error.new("Could not tokenize")
+      tokenize(strings.to_s, ngramize)
     end
     ngramize ? ngramize(tokens) : tokens
   end
